@@ -1,0 +1,9 @@
+tensorflow==2.16.2
+keras==3.3.3
+numpy
+pandas==2.2.2
+opencv-python-headless
+Pillow==11.3.0
+fastapi==0.110.0
+uvicorn==0.29.0
+python-multipart==0.0.9

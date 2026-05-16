@@ -1,0 +1,30 @@
+# Ignore temporary images
+temp_*.jpg
+temp_*.png
+
+# Ignore the heavy AI model
+saved_model/
+*.keras
+*.h5
+*.pt
+*.pth
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore Mac system files
+.DS_Store
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
