@@ -11,8 +11,8 @@ A production-grade, end-to-end deep learning system for skin lesion classificati
 | Metric | Value |
 |---|---|
 | **AUC-ROC** | **0.862** |
-| **Sensitivity (Recall)** | **96.9%** |
-| **Specificity** | 44.1% |
+| **Sensitivity (Recall)** | **98.3%** |
+| **Specificity** | 31.53% |
 | **Optimal Threshold (τ)** | 0.18 |
 | **Dataset** | ISIC 2020 (33,126 images) |
 | **Backbone** | EfficientNetV2-B0 |
@@ -55,13 +55,15 @@ The core innovation of this system is a **Late Fusion** strategy. Rather than tr
                           Dense(1, Sigmoid) → P(malignant)
 ```
 
+<img src="assets/architecture.png" width="500" alt="Late Fusion Model Architecture"/>
+
 ---
 
 ## ⚙️ Preprocessing Pipeline
 
 Every dermoscopic image passes through a 5-stage preprocessing pipeline before being fed to the model. This pipeline was designed to remove clinical artifacts that would confuse the model and are not part of the lesion itself.
 
-![Raw dermoscopic samples before any preprocessing](assets/raw_samples.png)
+<img src="assets/raw_samples.png" width="750" alt="Raw dermoscopic samples before any preprocessing"/>
 
 ### Stage 1: Resize
 All images are resized to a consistent **256×256** resolution.
@@ -69,24 +71,24 @@ All images are resized to a consistent **256×256** resolution.
 ### Stage 2: DullRazor — Hair Removal
 A classical computer vision implementation of the **DullRazor algorithm** using morphological black-hat transforms and OpenCV inpainting to detect and cleanly remove hair occluding the lesion.
 
-![DullRazor hair removal result](assets/hair_removal.png)
+<img src="assets/hair_removal.png" width="700" alt="DullRazor hair removal result"/>
 
 ### Stage 3: Surgical Ink Removal
 Surgical marker artifacts (blue/purple ink) are detected using **HSV thresholding**. The binary ink mask is dilated using a `7×7` morphological ellipse kernel (`iterations=2`) to capture faint semi-transparent ink edges before inpainting. This dilation step was critical — without it, the inpainting algorithm would drag the faint ink pixels inward, creating dark smudges.
 
-![Ink artifact detection and inpainting](assets/ink_removal.png)
+<img src="assets/ink_removal.png" width="700" alt="Ink artifact detection and inpainting"/>
 
 ### Stage 4: Color Constancy (Grey World Algorithm)
 Dermoscopes from different clinics and camera settings introduce lighting biases that shift the colour space of images. The **Grey World assumption** is applied to normalize illumination across all images, making the model lighting-invariant.
 
-![Color constancy normalization result](assets/color_constancy.png)
+<img src="assets/color_constancy.png" width="600" alt="Color constancy normalization result"/>
 
 ### Stage 5: Pixel Normalization
 All pixel values are scaled from `[0, 255]` to `[0.0, 1.0]` (float32).
 
 **Final Result — Before vs. After Full Pipeline:**
 
-![Full preprocessing pipeline results](assets/preprocessed.png)
+<img src="assets/preprocessed.png" width="600" alt="Full preprocessing pipeline results"/>
 
 ---
 
@@ -95,17 +97,17 @@ All pixel values are scaled from `[0, 255]` to `[0.0, 1.0]` (float32).
 ### Class Imbalance
 The dataset presents a significant clinical reality: malignant lesions are rare. Only ~2.2% of images are malignant, matching real-world prevalence.
 
-![Distribution of target classes](assets/class_distribution.png)
+<img src="assets/class_distribution.png" width="550" alt="Distribution of target classes"/>
 
 ### Melanoma Rate by Anatomical Site
 The head/neck and oral/genital regions show the highest melanoma rates, providing strong clinical signal to the metadata branch.
 
-![Melanoma rate by body site](assets/melanoma_by_site.png)
+<img src="assets/melanoma_by_site.png" width="550" alt="Melanoma rate by body site"/>
 
 ### Metadata Feature Engineering
 The raw `n_images_per_patient` feature was right-skewed (most patients have few images, a small number have hundreds). A `log1p` transformation was applied to normalize its distribution and make it suitable as a neural network input.
 
-![Log transformation of images per patient](assets/log_transform.png)
+<img src="assets/log_transform.png" width="700" alt="Log transformation of images per patient"/>
 
 ---
 
@@ -126,12 +128,12 @@ The top layers of the EfficientNetV2-B0 backbone were **unfrozen** and trained w
 ### ROC Curve
 The system achieves an **AUC of 0.862** on the held-out validation set. The operating point (red dot) shows the chosen threshold of τ=0.22 (original), with the final deployment threshold calibrated to τ=0.18 for higher sensitivity.
 
-![ROC Curve — AUC 0.862](assets/roc_curve.png)
+<img src="assets/roc_curve.png" width="550" alt="ROC Curve — AUC 0.862"/>
 
 ### Confusion Matrix
-At threshold τ=0.22, the model catches **96.9% of all real malignant lesions** while correctly classifying 44.1% of benign cases.
+The confusion matrix below is shown at the reference threshold of τ=0.22 (96.9% sensitivity, 44.1% specificity). The final **deployed threshold is τ=0.18**, which catches **98.3% of all malignant lesions** (115/117), missing only 2 cases, at a specificity of 31.53%.
 
-![Confusion matrix at threshold 0.22](assets/confusion_matrix.png)
+<img src="assets/confusion_matrix.png" width="500" alt="Confusion matrix at threshold 0.22"/>
 
 ---
 
