@@ -28,7 +28,7 @@ def run_full_inference(img_path, patient_metadata, model,
 
   ## --------- 2. Build metadata features---------
   meta_dict = {
-      'sex_encoded' : 1.0 if patient_metadata.get('sex') == 'male' else 0.0,
+      'sex_encoded' : 1.0 if patient_metadata.get('sex') == 'male' else (0.0 if patient_metadata.get('sex') == 'female' else 0.5),
       'age_normalized' : patient_metadata.get('age', 45)/90,
       'n_images_log' : np.log1p(patient_metadata.get('n_images_per_patient', 1))
   }

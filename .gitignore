@@ -28,3 +28,4 @@ venv.bak/
 
 # Jupyter Notebook
 .ipynb_checkpoints/
+saved_files/

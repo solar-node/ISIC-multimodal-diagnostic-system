@@ -32,9 +32,6 @@ app.add_middleware(
     allow_headers = ["*"]
 )
 
-# In main.py — put this BEFORE the load_model call, after imports
-
-
 
 # Patch directly on the classes themselves
 _orig_flip = RandomFlip.__init__
@@ -57,12 +54,11 @@ RandomFlip.__init__ = _flip_init
 RandomRotation.__init__ = _rotation_init
 RandomBrightness.__init__ = _brightness_init
 
-# NOW load — no custom_objects needed
+# --------- Load model ------------
 model = keras.saving.load_model(
     "saved_model/best_fusion_model.keras",
     compile=False
 )
-
 
 # --------- API Endpoint ---------
 @app.post("/analyze")
