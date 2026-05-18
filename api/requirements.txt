@@ -8,3 +8,4 @@ Pillow
 pandas
 numpy
 h5py
+google-cloud-storage

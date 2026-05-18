@@ -467,6 +467,9 @@ select.input-field option {
 
 /* Print Styles */
 @media print {
+  @page {
+    margin: 10mm;
+  }
   body {
     background: white;
     color: black;
@@ -474,7 +477,7 @@ select.input-field option {
   .print-only-header {
     display: block !important;
   }
-  .left-panel, .header, .modal-overlay {
+  .left-panel, .header, .modal-overlay, .site-footer {
     display: none !important;
   }
   .dash-grid {

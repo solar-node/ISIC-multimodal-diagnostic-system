@@ -4,21 +4,15 @@ import tensorflow as tf
 import keras
 import shutil
 import os
-import json
 import uvicorn
+
+from keras.layers import RandomFlip, RandomRotation, RandomBrightness
 from load_and_preprocess import full_preprocess
 from tta_mc_dropout import predict_tta_mc
 from utils import get_uncertainty_label, numpy_to_base64
 from score_cam import make_scorecam_heatmap, overlay_heatmap_on_image
 from inference_pipeline import run_full_inference
 
-import keras
-from keras.layers import RandomFlip, RandomRotation, RandomBrightness
-
-print("=== ENVIRONMENT CHECK ===")
-print(f"TensorFlow Version: {tf.__version__}")
-print(f"Keras Version: {keras.__version__}")
-print("=========================")
 
 app = FastAPI(title = "Malenoma Diagnostic API")
 
@@ -31,6 +25,27 @@ app.add_middleware(
     allow_methods = ["*"],
     allow_headers = ["*"]
 )
+
+
+# --------- Download Model from Google Cloud Storage if not exists ---------
+MODEL_PATH = "saved_model/best_fusion_model.keras"
+BUCKET_NAME = os.environ.get("GCS_BUCKET_NAME", "malenoma-model-aditya")
+
+if not os.path.exists(MODEL_PATH):
+    print("Model not found locally. Fetching from GCS...")
+    try:
+        from google.cloud import storage
+        os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+        
+        # Initialize client. Cloud Run automatically uses its service account credentials!
+        client = storage.Client()
+        bucket = client.bucket(BUCKET_NAME)
+        blob = bucket.blob("best_fusion_model.keras")
+        blob.download_to_filename(MODEL_PATH)
+        print("Model downloaded successfully from GCS!")
+    except Exception as e:
+        print(f"CRITICAL ERROR: Failed to download model from GCS: {e}")
+
 
 
 # Patch directly on the classes themselves
@@ -56,7 +71,7 @@ RandomBrightness.__init__ = _brightness_init
 
 # --------- Load model ------------
 model = keras.saving.load_model(
-    "saved_model/best_fusion_model.keras",
+    MODEL_PATH,
     compile=False
 )
 
@@ -98,7 +113,7 @@ async def analyze_lesion(
                 'site_torso', 'site_unknown', 'site_upper_extremity'
             ],
 
-            threshold=0.22,  # optimal threshold found after experimentation
+            threshold=0.18,  # optimal threshold found after experimentation
             grid_size=14,
             img_size=256,
             n_mc_passes=20
