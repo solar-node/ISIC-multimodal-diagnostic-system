@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: .
+        working-directory: ./api
         
     steps:
     - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r api/requirements.txt
+        pip install -r requirements.txt
 
     # DOCKER HUB DEPLOYMENT
 
@@ -47,7 +47,6 @@ jobs:
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: docker/build-push-action@v5
       with:
-        context: .
-        file: ./api/Dockerfile
+        context: ./api
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/melanoma-api:latest
