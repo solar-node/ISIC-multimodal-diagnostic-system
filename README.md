@@ -2,7 +2,7 @@
 
 **Multimodal melanoma detection — 98.3% sensitivity, patient-level validated, EfficientNetV2 + clinical metadata fusion, deployed on GCP.**
 
-[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-isic--multimodal--diagnostic--system.vercel.app-1a8f70?style=for-the-badge)](https://isic-multimodal-diagnostic-system.vercel.app/)
+🚀 **Live Demo:** [isic-multimodal-diagnostic-system.vercel.app](https://isic-multimodal-diagnostic-system.vercel.app/)
 
 A production-grade, end-to-end deep learning system for skin lesion classification built on the **ISIC 2020 dataset**. The system combines dermoscopic image analysis with clinical patient metadata using a **Late Fusion architecture**, and is deployed as a live clinical decision-support tool via a FastAPI backend and a React frontend.
 
@@ -11,18 +11,24 @@ A production-grade, end-to-end deep learning system for skin lesion classificati
 ---
 
 
-## 🏆 Key Results
+##  Key Results
 
-| Metric                    | Value                     |
-| ------------------------- | ------------------------- |
-| **AUC-ROC**               | **0.862**                 |
-| **Sensitivity (Recall)**  | **98.3%**                 |
-| **Specificity**           | 31.53%                    |
-| **Optimal Threshold (τ)** | 0.18                      |
-| **Dataset**               | ISIC 2020 (33,126 images) |
-| **Backbone**              | EfficientNetV2-B0         |
+| Metric                    | Value                        |
+| ------------------------- | ---------------------------- |
+| **AUC-ROC**               | **0.862**                    |
+| **Sensitivity (Recall)**  | **98.3%**                    |
+| **Specificity**           | 31.53%                       |
+| **Optimal Threshold (τ)** | 0.18                         |
+| **Dataset**               | ISIC 2020 (33,126 images)    |
+| **Backbone**              | EfficientNetV2-B0            |
+| **ROC-AUC**               |0.8541 (95% CI: 0.8237–0.8865)|
 
 > The threshold τ = 0.18 was deliberately calibrated to **maximise sensitivity** — a clinically critical design choice. In cancer screening, it is far safer to over-refer (false positive) than to miss a malignant lesion (false negative).
+
+> **Important:** The train/validation split uses `GroupShuffleSplit`
+> by `patient_id` — not random image-level splitting. ISIC 2020
+> contains multiple images per patient; naive splits inflate AUC
+> by allowing patient skin texture to leak across train/val sets.
 
 ---
 
@@ -93,9 +99,9 @@ Surgical marker artifacts (blue/purple ink) are detected using **HSV thresholdin
 
 <img src="assets/ink_removal.png" width="700" alt="Ink artifact detection and inpainting"/>
 
-### Stage 4: Color Constancy (Grey World Algorithm)
+### Stage 4: Color Constancy (Minkowski p-norm, p=6)
 
-Dermoscopes from different clinics and camera settings introduce lighting biases that shift the colour space of images. The **Grey World assumption** is applied to normalize illumination across all images, making the model lighting-invariant.
+Dermoscopes from different clinics and camera settings introduce lighting biases that shift the colour space of images. The **Minkowski p-norm (p=6) is applied to normalize illumination across all images, making the model lighting-invariant.
 
 <img src="assets/color_constancy.png" width="600" alt="Color constancy normalization result"/>
 
@@ -163,17 +169,23 @@ The confusion matrix below is shown at the reference threshold of τ=0.22 (96.9%
 
 ## 🔍 Explainability — Score-CAM
 
-The system uses **Score-CAM** (Score-weighted Class Activation Mapping), a gradient-free XAI technique. Unlike standard Grad-CAM, Score-CAM does not require gradient flow back through the model. Instead, it:
+The system uses **Occlusion Sensitivity** (Zeiler & Fergus, 2014), 
+a gradient-free explainability method. Unlike Grad-CAM, it requires 
+no gradient flow and treats the model as a complete black box — 
+which is necessary here because the Late Fusion architecture's 
+internal Global Average Pooling collapses spatial dimensions before 
+the output, making layer-based methods inapplicable.
 
-1. Extracts the intermediate activation maps from the final convolutional layer.
-2. Upsamples each activation map and uses it as a mask applied to the input image.
-3. Scores each masked image by running it through the model (196 forward passes for a 14×14 grid).
-4. Creates a weighted sum of the activation maps using those scores as weights.
+The implementation:
+1. Divides the 256×256 input into a 14×14 grid (196 patches)
+2. For each patch: blacks out that region, leaves everything else visible
+3. Scores all 196 occluded variants in a single batched forward pass
+4. Regions whose removal most drops the malignancy score are most 
+   important — after inversion, these appear hot (red) on the heatmap
 
-The resulting heatmap highlights exactly which regions of the skin lesion drove the model's malignancy prediction, making each decision interpretable to a clinician.
-
-> **Why Score-CAM over Grad-CAM?** The Late Fusion architecture concatenates two separate input branches. Computing gradients of the output with respect to only the image branch's activations is architecturally ambiguous. Score-CAM bypasses this entirely.
-
+This approach was chosen specifically because it makes no assumptions 
+about model internals — it works correctly with nested backbones, 
+custom augmentation layers, and multimodal fusion architectures.
 ---
 
 ## Uncertainty Estimation — MC-TTA
