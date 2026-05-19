@@ -7,7 +7,7 @@ from utils import get_uncertainty_label, numpy_to_base64
 from score_cam import make_scorecam_heatmap, overlay_heatmap_on_image
 
 def run_full_inference(img_path, patient_metadata, model,
-                       meta_cols, threshold, grid_size=14, 
+                       meta_cols, threshold=0.18, grid_size=14, 
                        img_size=256, n_mc_passes=20):
   """
   Full inference pipeline - called by FastAPI backend

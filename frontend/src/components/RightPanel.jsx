@@ -115,7 +115,7 @@ export default function RightPanel({
                     )}
                   </div>
                   <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 3 }}>
-                    {result.probability?.toFixed(1)}% probability · threshold {(result.threshold_used * 100).toFixed(0)}%
+                    {result.probability?.toFixed(1)}% probability · threshold {(0.18 * 100).toFixed(0)}%
                   </div>
                 </div>
               </div>
