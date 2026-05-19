@@ -2,11 +2,14 @@
 
 **Multimodal melanoma detection — 98.3% sensitivity, patient-level validated, EfficientNetV2 + clinical metadata fusion, deployed on GCP.**
 
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-isic--multimodal--diagnostic--system.vercel.app-1a8f70?style=for-the-badge)](https://isic-multimodal-diagnostic-system.vercel.app/)
+
 A production-grade, end-to-end deep learning system for skin lesion classification built on the **ISIC 2020 dataset**. The system combines dermoscopic image analysis with clinical patient metadata using a **Late Fusion architecture**, and is deployed as a live clinical decision-support tool via a FastAPI backend and a React frontend.
 
 > **Disclaimer:** This system is intended for clinical decision support only. It is not a substitute for professional dermatologist review.
 
 ---
+
 
 ## 🏆 Key Results
 
