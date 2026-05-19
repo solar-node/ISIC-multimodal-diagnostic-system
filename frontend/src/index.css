@@ -467,43 +467,84 @@ select.input-field option {
 
 /* Print Styles */
 @media print {
+  /* Zero page margins removes the browser's native URL / date / page-number
+     headers and footers that the browser injects around the content */
   @page {
-    margin: 10mm;
+    margin: 8mm;
+    size: A4 portrait;
   }
+
+  /* Suppress browser chrome headers/footers (Chrome/Edge support) */
+  html {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   body {
-    background: white;
-    color: black;
+    background: white !important;
+    color: black !important;
+    /* Prevent a second page from rendering */
+    height: 100%;
+    overflow: hidden;
   }
+
+  /* Hide everything that is NOT the report */
+  .left-panel,
+  .header,
+  .modal-overlay,
+  .site-footer,
+  .tooltip-text,
+  .tooltip-container svg {
+    display: none !important;
+  }
+
+  /* Show the print-only patient header */
   .print-only-header {
     display: block !important;
   }
-  .left-panel, .header, .modal-overlay, .site-footer {
-    display: none !important;
+
+  .app-container {
+    height: auto;
+    min-height: unset;
   }
+
   .dash-grid {
     display: block;
+    min-height: unset;
   }
+
   .right-panel {
     padding: 0;
+    gap: 10px;
+    overflow: visible;
   }
+
+  /* Scale the report down so all cards fit on one A4 page */
+  .right-panel > div {
+    transform-origin: top left;
+    transform: scale(0.88);
+    width: calc(100% / 0.88);
+  }
+
   .card {
     break-inside: avoid;
     page-break-inside: avoid;
-    border: 1px solid #ccc;
+    border: 1px solid #ccc !important;
     background: white !important;
-    box-shadow: none;
-    margin-bottom: 15px;
+    box-shadow: none !important;
+    margin-bottom: 10px;
   }
+
   .card * {
     color: black !important;
   }
-  
-  /* Fix images for print */
+
+  /* Images side-by-side, smaller for single-page fit */
   .result-images {
     display: flex !important;
     flex-direction: row;
     justify-content: center;
-    gap: 15px;
+    gap: 12px;
   }
   .result-images > div {
     flex: 1;
@@ -511,13 +552,13 @@ select.input-field option {
     border: 1px solid #ccc !important;
   }
   .result-images img {
-    max-height: 320px !important;
+    max-height: 220px !important;
     width: 100% !important;
     object-fit: contain !important;
     display: block;
   }
 
-  /* Force colors for print */
+  /* Force background colors for verdict cards */
   .print-force-bg-red {
     background-color: #fef2f2 !important;
     -webkit-print-color-adjust: exact;
@@ -533,5 +574,10 @@ select.input-field option {
   }
   .print-force-text-green {
     color: #16a34a !important;
+  }
+
+  /* Prevent any page break after the last card */
+  .right-panel > div > *:last-child {
+    page-break-after: avoid;
   }
 }
