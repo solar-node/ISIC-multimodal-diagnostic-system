@@ -365,7 +365,7 @@ docker run -p 8080:8080 melanoma-api
 
 A full technical clinical report documenting the methodology, engineering decisions, and results is available in this repository:
 
-📄 **[Read the Clinical ML Report (PDF)](ISIC_model_report.pdf)**
+📄 **[Read the Clinical ML Report (PDF)](https://drive.google.com/file/d/17DSiih23LqxgsFRRGdakydTaKhSD_nzZ/view?usp=sharing)**
 
 ---
 
